@@ -6,8 +6,8 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "python.defaultInterpreterPath": "/home/vscode/.pyenv/versions/3.11.4/bin/python",
-                "python.pythonPath": "/home/vscode/.pyenv/versions/3.11.4/bin/python"
+                "python.defaultInterpreterPath": "/workspaces/CHA/.venv/bin/python",
+                "python.pythonPath": "/workspaces/CHA/.venv/bin/python"
             },
             "extensions": [
                 "ms-python.python",
@@ -16,5 +16,6 @@
         }
     },
     "postCreateCommand": "bash .devcontainer/setup-python.sh",
-    "remoteUser": "vscode"
+    "remoteUser": "vscode",
+    "waitFor": "postCreateCommand"
 }
