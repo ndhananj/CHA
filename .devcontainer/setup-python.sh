@@ -26,10 +26,15 @@ log "Updating package lists..."
 sudo apt-get update
 check_step "Package list update"
 
-# Install Python tools if needed
-log "Installing Python development tools..."
-sudo apt-get install -y python3-pip python3-venv
-check_step "Python tools installation"
+# Install system dependencies
+log "Installing system dependencies..."
+sudo apt-get install -y \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    portaudio19-dev \
+    python3-venv
+check_step "System dependencies installation"
 
 # Set up virtual environment
 log "Creating virtual environment..."
@@ -46,15 +51,21 @@ log "Upgrading pip..."
 python -m pip install --upgrade pip
 check_step "Pip upgrade"
 
-# Install Python dependencies if requirements.txt exists
+# Install required Python packages
+log "Installing required Python packages..."
+pip install \
+    nvidia-riva-client \
+    pyaudio \
+    playwright \
+    pytest \
+    pytest-playwright
+check_step "Python packages installation"
+
+# Install additional Python dependencies if requirements.txt exists
 if [ -f "requirements.txt" ]; then
-    log "Installing Python packages from requirements.txt..."
+    log "Installing additional Python packages from requirements.txt..."
     pip install -r requirements.txt
-    check_step "Python packages installation"
-else
-    log "No requirements.txt found. Installing core packages..."
-    pip install playwright pytest pytest-playwright
-    check_step "Core packages installation"
+    check_step "Additional Python packages installation"
 fi
 
 # Install Playwright
@@ -69,5 +80,6 @@ log "Environment Information:"
 python --version
 pip --version
 playwright --version
+log "PyAudio and Riva client are installed"
 
 log "You can now start developing!"
