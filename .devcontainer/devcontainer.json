@@ -1,0 +1,21 @@
+{
+    "name": "Python 3.11 Development",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "python.defaultInterpreterPath": "/home/codespace/.pyenv/versions/3.11.4/bin/python",
+                "python.pythonPath": "/home/codespace/.pyenv/versions/3.11.4/bin/python"
+            },
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance"
+            ]
+        }
+    },
+    "postCreateCommand": "bash .devcontainer/setup-python.sh",
+    "remoteUser": "codespace"
+}

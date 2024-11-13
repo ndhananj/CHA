@@ -29,3 +29,8 @@ echo "Python version:"
 python --version
 echo "Pip version:"
 pip --version
+
+# Install Playwright and its dependencies
+pip install playwright
+playwright install
+npx playwright install-deps
