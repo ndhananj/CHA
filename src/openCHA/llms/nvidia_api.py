@@ -42,7 +42,7 @@ class NvidiaLLM(BaseLLM):
 
         try:
             from openai import OpenAI
-            print(f"instantiated NvidiaLLM with key {values["api_key"]}")
+            print(f'instantiated NvidiaLLM with key {values["api_key"]}')
             values["llm_model"] = OpenAI(base_url = "https://integrate.api.nvidia.com/v1", api_key = values["api_key"] )
         except ImportError:
             raise ValueError(
