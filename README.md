@@ -9,39 +9,28 @@ Quick Start
 To use CHA in a safe and stable way, ensure you have Python 3.10 or higher installed. First, create a virtual environment:
 
 ```python
-# Create the virtual environment
-python -m venv /path/to/new/virtual/environment
-
-# Activate the virtual environment
-source /path/to/new/virtual/environment/bin/activate
-```
-
-Now, install the CHA package.
-```bash
-pip install openCHA
-playwright install
+create a conda environment
 ```
 
 Manual Installation
 -------------------
 
 ```bash
-git clone https://github.com/Institute4FutureHealth/CHA.git
+git clone https://github.com/ndhananj/CHA
 cd CHA
 pip install -e '.[all]'
 playwright install
+
+echo  for whisper
+pip install transformers  torchaudio
+pip install git+https://github.com/openai/whisper.git
+
 ```
 
 To simplify installation with minimum requirements and be ready to go, you can use the following command. This installs OpenAI, React Planner, as well as SerpAPI (search) and Playwright (browser) tasks:
 
 ```bash
 pip install -e '.[minimum]'
-```
-
-If you want to install all requirements for all tasks and other components, use the following command:
-
-```bash
-pip install -e '.[all]'
 ```
 
 Running openCHA
