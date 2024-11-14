@@ -1,4 +1,5 @@
 from openCHA.tasks.task import BaseTask
+from openCHA.tasks.FHIR_module import FHIRTask
 from openCHA.tasks.ask_user import AskUser
 from openCHA.tasks.task_types import TaskType
 from openCHA.tasks.extract_text import ExtractText
@@ -13,6 +14,7 @@ from openCHA.tasks.initialize_task import initialize_task
 
 __all__ = [
     "BaseTask",
+    "FHIRTask",
     "AskUser",
     "ExtractText",
     "GoogleSearch",
