@@ -23,9 +23,31 @@ procedure_field_mappings = {
     "Performed Date": ["performedDateTime"]
 }
 
+# Define field mappings for Allergies
+allergy_mappings = {
+    "Allergen": ["code", "text"],
+    "Reaction": ["reaction", 0, "description"],
+    "Severity": ["criticality"],
+    "Status": ["clinicalStatus", "coding", 0, "code"],
+    "Onset Date": ["onsetDateTime"],
+    "Recorded Date": ["recordedDate"],
+    "Category": ["category", 0],
+    "Manifestation": ["reaction", 0, "manifestation", 0, "text"]
+}
+
+# Define field mappings for Conditions
+condition_mappings = {
+    "Category": ["category", 0, "coding", 0, "display"],
+    "Onset Date": ["onsetDateTime"],
+    "ICD10": ["code", "coding", 2, "code"],  # Index 2 typically has ICD-10 coding
+    "SNOMED": ["code", "coding", 0, "code"]  # Index 0 typically has SNOMED coding
+}
+
 endpoint_to_fieldmapping = {
     "MedicationRequest":medication_field_mappings, 
-    "Procedure":procedure_field_mappings
+    "Procedure":procedure_field_mappings,
+    "AllergyIntolerance":allergy_mappings,
+    "Condition":condition_mappings
 }
 
 def get_nested_value(data: Any, path: List[str], default: Any = None) -> Any:
@@ -220,6 +242,7 @@ def process_health_request(endpoint) -> pd.DataFrame:
         }
         params = {"patient": patient_id}
         
+        print(f"curl -X GET '{requests.Request('GET', url, headers=headers, params=params).prepare().url}' " + " ".join(f"-H '{k}: {v}'" for k,v in headers.items()))
         response = requests.get(url, headers=headers, params=params)
         data = response.json()
         
