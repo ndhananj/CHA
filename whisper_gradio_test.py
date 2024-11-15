@@ -75,6 +75,9 @@ def extract_info(row: pd.Series, field_mappings: Dict[str, List[str]]) -> pd.Ser
     Returns:
         pd.Series with extracted information based on field mappings
     """
+    if None==field_mappings: # no mappings exist
+        return row
+
     extracted_data = {}
 
     for field_name, path in field_mappings.items():
@@ -112,7 +115,7 @@ def process_fhir_data(endpoint:str, df: pd.DataFrame) -> pd.DataFrame:
 
      # determine field_mappings from endpoint 
      #field_mappings: A dictionary that maps user-friendly field names to paths in the data structure
-    field_mappings = endpoint_to_fieldmapping[endpoint]
+    field_mappings = endpoint_to_fieldmapping.get(endpoint,None)
     print(field_mappings)
 
     try:
