@@ -231,8 +231,19 @@ def get_fhir_endpoint(query):
 
 def process_health_request(endpoint) -> pd.DataFrame:
 
+    who_has_what = {
+               'AllergyIntolerance': '4f301ddd-1a7f-4c9b-883e-1db9c5c7511d', 
+               'Condition': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+               'DiagnosticReport': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+               'Encounter': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+               'Immunization': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+               'MedicationRequest': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc', 
+               'Observation': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+               'Procedure': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc'
+               }
+
     access_token = os.environ['ACCESS_TOKEN']
-    patient_id   = os.environ['PATIENT_ID']
+    patient_id   = who_has_what.get(endpoint, None)
 
     if endpoint:
         url = f"https://fhir.careevolution.com/Master.Adapter1.WebClient/api/fhir-r4/{endpoint}"
@@ -295,27 +306,16 @@ def reset_audio():
 
 # Sample test prompts for audio input
 test_prompts = """
-    1. `AllergyIntolerance`
-    2. `CarePlan`
-    3. `CareTeam`
-    4. `Condition`
-    5. `Device`
-    6. `DiagnosticReport`
-    7. `DocumentReference`
-    8. `Encounter`
-    9. `Goal`
-    10. `Immunization`
-    11. `Location`
-    12. `MedicationRequest`
-    13. `Observation`
-    14. `Organization`
-    15. `Patient`
-    16. `Practitioner`
-    17. `Procedure`
-    18. `ServiceRequest`
-
-    If the request is "Show me my medications," return: `MedicationRequest`
-    If the request is "I need to see my allergies," return: `AllergyIntolerance`
+    Show me my medications
+    I need to see my allergies 
+    'AllergyIntolerance': '4f301ddd-1a7f-4c9b-883e-1db9c5c7511d', 
+    'Condition': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+    'DiagnosticReport': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+    'Encounter': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+    'Immunization': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+    'MedicationRequest': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc', 
+    'Observation': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
+    'Procedure': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc'
 """
 
 # Create the interface
