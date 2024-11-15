@@ -79,7 +79,7 @@ def get_fhir_endpoint(query):
 
 
 
-def process_health_request(endpoint):
+def process_health_request(endpoint) -> pd.DataFrame:
 
     access_token = os.environ['ACCESS_TOKEN']
     patient_id   = os.environ['PATIENT_ID']
@@ -105,15 +105,24 @@ def process_health_request(endpoint):
     return pd.DataFrame()  # Empty dataframe if request not understood
 
 
-
+def sample_dataframe(endpoint: str) -> pd.DataFrame:
+    # Example function to simulate health data processing
+    # Replace this with your actual process_health_request implementation
+    sample_data = {
+        'Patient_ID': [1, 2, 3],
+        'Status': ['Active', 'Pending', 'Completed'],
+        'Date': ['2024-03-01', '2024-03-02', '2024-03-03'],
+        'Notes': ['Regular checkup', 'Follow-up needed', 'Treatment complete']
+    }
+    return pd.DataFrame(sample_data)
 
 def sequential_process(audio):
     if audio is None:
-        return ["No audio recorded", "", "", "", ""]
+        return ["No audio recorded", "", "", None]
     
     # First pane shows audio recording status and other 4 blank 
     status = "Audio recorded successfully"
-    yield [status, "", "", "", ""]
+    yield [status, "", "", None]
     
     
     # Second pane: Whisper transcription
@@ -127,7 +136,7 @@ def sequential_process(audio):
     transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-base.en")
     transcribed_text = transcriber({"sampling_rate": sr, "raw": y})["text"]
     #  update transcription, and set others to same
-    yield [status, f"Transcription: {transcribed_text}", "", "", None]
+    yield [status, transcribed_text, "", None]
 
     # Third pane: Generate endpoint
     time.sleep(1)
@@ -136,7 +145,7 @@ def sequential_process(audio):
     
     # output 5: Make API call and show dataframe
     time.sleep(1)
-    df = process_health_request(endpoint)
+    df = sample_dataframe(endpoint)
     yield [status, transcribed_text, endpoint, df]
 
 
@@ -159,13 +168,13 @@ with gr.Blocks() as demo:
     output1 = gr.Textbox(label="Recording Status")
     output2 = gr.Textbox(label="Query")
     output3 = gr.Textbox(label="Endpoint")
-    output5 = gr.Dataframe(label="DataFrame") 
+    output4 = gr.Dataframe(label="DataFrame") 
     
     # Connect the button to the function
     process_btn.click(
         fn=sequential_process,
         inputs=[input_audio],
-        outputs=[output1, output2, output3, output5]
+        outputs=[output1, output2, output3, output4]
     )
 
 # Launch the interface
