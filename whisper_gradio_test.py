@@ -377,7 +377,7 @@ test_prompts = """
 
 # Create the interface
 with gr.Blocks() as demo:
-    gr.Markdown("# Audio Processing Pipeline")
+    gr.Markdown("# Querying FHIR data by voice")
     
     with gr.Row():
         # Left column for audio input and controls
@@ -397,9 +397,9 @@ with gr.Blocks() as demo:
             
             # Output panes
             output1 = gr.Textbox(label="Recording Status")
-            output2 = gr.Textbox(label="Query")
-            output3 = gr.Textbox(label="Endpoint")
-            output4 = gr.Dataframe(label="DataFrame")
+            output2 = gr.Textbox(label="Transcript of voice Query")
+            output3 = gr.Textbox(label="Endpoint extracted from Query")
+            output4 = gr.Dataframe(label="Multidimensional JSON response converted to DataFrame")
         
         # Right column for test prompts
         with gr.Column(scale=1):
