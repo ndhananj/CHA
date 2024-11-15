@@ -1,11 +1,5 @@
-import gradio as gr
-import time
-import numpy as np
-from transformers import pipeline
-import requests
-import pandas as pd
-import os
 from openai import OpenAI
+from google.colab import userdata
 
 def get_fhir_endpoint(query):
     """
@@ -19,7 +13,7 @@ def get_fhir_endpoint(query):
     """
     client = OpenAI(
         base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ['NVIDIA_API_KEY']
+        api_key=userdata.get('NVIDIA_API_KEY')
     )
 
     sys_prompt = """
@@ -77,13 +71,12 @@ def get_fhir_endpoint(query):
     
     return endpoint if endpoint else None
 
-
-
-def process_health_request(endpoint):
-
-    access_token = os.environ['ACCESS_TOKEN']
-    patient_id   = os.environ['PATIENT_ID']
-
+def process_health_request(query, patient_id, access_token):
+    import requests
+    import pandas as pd
+    
+    endpoint = get_fhir_endpoint(query)
+    
     if endpoint:
         url = f"https://fhir.careevolution.com/Master.Adapter1.WebClient/api/fhir-r4/{endpoint}"
         headers = {
@@ -103,70 +96,3 @@ def process_health_request(endpoint):
             return pd.DataFrame()  # Empty dataframe if no results
     
     return pd.DataFrame()  # Empty dataframe if request not understood
-
-
-
-
-def sequential_process(audio):
-    if audio is None:
-        return ["No audio recorded", "", "", "", ""]
-    
-    # First pane shows audio recording status and other 4 blank 
-    status = "Audio recorded successfully"
-    yield [status, "", "", "", ""]
-    
-    
-    # Second pane: Whisper transcription
-    time.sleep(0.5)  # Give UI time to update
-    sr, y = audio
-    # Convert to mono if stereo
-    if y.ndim > 1:
-        y = y.mean(axis=1)
-    y = y.astype(np.float32)
-    y /= np.max(np.abs(y))
-    transcriber = pipeline("automatic-speech-recognition", model="openai/whisper-base.en")
-    transcribed_text = transcriber({"sampling_rate": sr, "raw": y})["text"]
-    #  update transcription, and set others to same
-    yield [status, f"Transcription: {transcribed_text}", "", "", None]
-
-    # Third pane: Generate endpoint
-    time.sleep(1)
-    endpoint = get_fhir_endpoint(transcribed_text)
-    yield [status, transcribed_text, endpoint, None]
-    
-    # output 5: Make API call and show dataframe
-    time.sleep(1)
-    df = process_health_request(endpoint)
-    yield [status, transcribed_text, endpoint, df]
-
-
-
-# Create the interface
-with gr.Blocks() as demo:
-    gr.Markdown("# Audio Processing Pipeline")
-    
-    # Input audio component
-    input_audio = gr.Audio(
-        sources="microphone",
-        type="numpy",
-        label="Record Audio"
-    )
-    
-    # Button to start processing
-    process_btn = gr.Button("Process Recording")
-    
-    # Output panes
-    output1 = gr.Textbox(label="Recording Status")
-    output2 = gr.Textbox(label="Query")
-    output3 = gr.Textbox(label="Endpoint")
-    output5 = gr.Dataframe(label="DataFrame") 
-    
-    # Connect the button to the function
-    process_btn.click(
-        fn=sequential_process,
-        inputs=[input_audio],
-        outputs=[output1, output2, output3, output5]
-    )
-
-# Launch the interface
-demo.queue().launch()
