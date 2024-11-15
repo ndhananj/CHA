@@ -145,7 +145,7 @@ def sequential_process(audio):
     
     # output 5: Make API call and show dataframe
     time.sleep(1)
-    df = sample_dataframe(endpoint)
+    df = process_health_request(endpoint)
     yield [status, transcribed_text, endpoint, df]
 
 
