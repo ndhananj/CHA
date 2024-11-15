@@ -43,11 +43,69 @@ condition_mappings = {
     "SNOMED": ["code", "coding", 0, "code"]  # Index 0 typically has SNOMED coding
 }
 
+# Mapping structure for lab reports:
+# - Test name and LOINC from code.coding
+# - Category indicates lab type (e.g. 'LAB')
+# - effectiveDateTime is when test was performed
+# - status shows if result is final/preliminary
+diagnostic_mappings = {
+    "Test": ["code", "text"],
+    "LOINC": ["code", "coding", 0, "code"],
+    "Category": ["category", 0, "text"],
+    "Status": ["status"],
+    "Test Date": ["effectiveDateTime"],
+    "Issue Date": ["issued"],
+    "Result Reference": ["result", 0, "reference"]
+}
+
+# Maps encounter data focusing on visit details, reason, and timing
+encounter_mappings = {
+    "Type": ["type", 0, "coding", 0, "display"],
+    "Status": ["status"],
+    "Class": ["class", "code"],  # EMER, AMB etc
+    "Start": ["period", "start"],
+    "End": ["period", "end"],
+    "ID": ["identifier", 0, "value"],
+    "SNOMED": ["type", 0, "coding", 0, "code"]
+}
+
+# Define field mappings for Immunizations
+immunization_mappings = {
+    "Vaccine": ["vaccineCode", "text"],
+    "CVX": ["vaccineCode", "coding", 0, "code"], 
+    "Date": ["occurrenceDateTime"],
+    "Status": ["status"],
+    "Dose": ["doseQuantity", "value"],
+    "Unit": ["doseQuantity", "unit"],
+    "ID": ["identifier", 0, "value"]
+}
+
+# Maps key clinical measurements:
+# - Test name and LOINC from code.coding
+# - Numeric results with units from valueQuantity
+# - Category indicates lab/vital/exam type
+# - Dates for test time and result issue
+observation_mappings = {
+    "Test": ["code", "text"],
+    "LOINC": ["code", "coding", 0, "code"],
+    "Category": ["category", 0, "text"],
+    "Date": ["effectiveDateTime"],
+    "Value": ["valueQuantity", "value"],
+    "Unit": ["valueQuantity", "unit"],
+    "Status": ["_status", "extension", 0, "valueCodeableConcept", "coding", 0, "display"],
+    "Components": ["component"]  # For multi-component observations like BP
+}
+
+
 endpoint_to_fieldmapping = {
-    "MedicationRequest":medication_field_mappings, 
-    "Procedure":procedure_field_mappings,
-    "AllergyIntolerance":allergy_mappings,
-    "Condition":condition_mappings
+    'AllergyIntolerance': allergy_mappings, 
+    'Condition': condition_mappings, 
+    'DiagnosticReport': diagnostic_mappings, 
+    'Encounter': encounter_mappings, 
+    'Immunization': immunization_mappings, 
+    'MedicationRequest': medication_field_mappings, 
+    'Observation': observation_mappings, 
+    'Procedure': procedure_field_mappings
 }
 
 def get_nested_value(data: Any, path: List[str], default: Any = None) -> Any:
