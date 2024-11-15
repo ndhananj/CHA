@@ -308,14 +308,13 @@ def reset_audio():
 test_prompts = """
     Show me my medications
     I need to see my allergies 
-    'AllergyIntolerance': '4f301ddd-1a7f-4c9b-883e-1db9c5c7511d', 
-    'Condition': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
-    'DiagnosticReport': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
-    'Encounter': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
-    'Immunization': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
-    'MedicationRequest': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc', 
-    'Observation': '2b8f2802-9a24-44a6-847b-0c5672f80824', 
-    'Procedure': 'd1fb6ccf-30c9-4825-9c74-824c36e86fbc'
+    show me a list of conditions
+    do I have a report with diagnostics?
+    give me a list of encounters
+    are my immunizations up to date?
+    give me a list of requests for medication
+    give me a list of observations
+    how many procedures do I have?
 """
 
 # Create the interface
