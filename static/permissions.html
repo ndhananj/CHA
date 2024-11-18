@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser Permissions & Microphone Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .permission-item {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            margin-left: 10px;
+            font-size: 0.9em;
+        }
+        .granted { background-color: #dff0d8; color: #3c763d; }
+        .denied { background-color: #f2dede; color: #a94442; }
+        .prompt { background-color: #fcf8e3; color: #8a6d3b; }
+        .unsupported { background-color: #f5f5f5; color: #777; }
+        button {
+            padding: 5px 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #visualizer {
+            width: 100%;
+            height: 200px;
+            background-color: #f5f5f5;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .mic-test-section {
+            margin-top: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #volumeMeter {
+            width: 50px;
+            height: 200px;
+            background: #ddd;
+            margin: 20px;
+            position: relative;
+        }
+        #volumeBar {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            background: #4CAF50;
+            transition: height 0.1s ease;
+        }
+        .controls {
+            margin: 20px 0;
+        }
+        #audioPlayback {
+            margin: 20px 0;
+            width: 100%;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Browser Permissions & Microphone Tester</h1>
+    <div id="permissions-list"></div>
+
+    <div class="mic-test-section">
+        <h2>Microphone Test</h2>
+        <div class="controls">
+            <button id="startTest">Start Microphone Test</button>
+            <button id="stopTest" disabled>Stop Test</button>
+            <button id="startRecording" disabled>Start Recording</button>
+            <button id="stopRecording" disabled>Stop Recording</button>
+        </div>
+        
+        <div style="display: flex;">
+            <canvas id="visualizer"></canvas>
+            <div id="volumeMeter"><div id="volumeBar"></div></div>
+        </div>
+
+        <div class="test-result" id="testResult">
+            Click "Start Microphone Test" to begin testing your microphone.
+        </div>
+
+        <div id="recordingSection" style="display: none;">
+            <h3>Recording Playback</h3>
+            <audio id="audioPlayback" controls></audio>
+        </div>
+    </div>
+
+    <script>
+        // Original permissions code
+        const permissionsToCheck = [
+            { name: 'geolocation', description: 'Access your location' },
+            { name: 'notifications', description: 'Show notifications' },
+            { name: 'push', description: 'Receive push messages' },
+            { name: 'midi', description: 'Access MIDI devices' },
+            { name: 'camera', description: 'Access your camera' },
+            { name: 'microphone', description: 'Access your microphone' },
+            { name: 'background-fetch', description: 'Background fetch' },
+            { name: 'persistent-storage', description: 'Persistent storage' },
+            { name: 'ambient-light-sensor', description: 'Access ambient light sensor' },
+            { name: 'accelerometer', description: 'Access accelerometer' },
+            { name: 'gyroscope', description: 'Access gyroscope' },
+            { name: 'magnetometer', description: 'Access magnetometer' },
+            { name: 'clipboard-read', description: 'Read clipboard content' },
+            { name: 'clipboard-write', description: 'Write to clipboard' },
+            { name: 'display-capture', description: 'Capture display' },
+            { name: 'nfc', description: 'Access NFC' }
+        ];
+
+        // Microphone test variables
+        let audioContext;
+        let microphone;
+        let analyser;
+        let mediaRecorder;
+        let audioChunks = [];
+        let isTestRunning = false;
+        let isRecording = false;
+
+        // Get DOM elements
+        const startTestButton = document.getElementById('startTest');
+        const stopTestButton = document.getElementById('stopTest');
+        const startRecordingButton = document.getElementById('startRecording');
+        const stopRecordingButton = document.getElementById('stopRecording');
+        const visualizer = document.getElementById('visualizer');
+        const volumeBar = document.getElementById('volumeBar');
+        const testResult = document.getElementById('testResult');
+        const recordingSection = document.getElementById('recordingSection');
+        const audioPlayback = document.getElementById('audioPlayback');
+
+        // Set up canvas
+        const canvas = visualizer;
+        const canvasCtx = canvas.getContext('2d');
+        canvas.width = visualizer.offsetWidth;
+        canvas.height = visualizer.offsetHeight;
+
+        // Start microphone test
+        async function startMicrophoneTest() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                microphone = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                
+                analyser.fftSize = 2048;
+                microphone.connect(analyser);
+
+                isTestRunning = true;
+                startTestButton.disabled = true;
+                stopTestButton.disabled = false;
+                startRecordingButton.disabled = false;
+                
+                testResult.textContent = "Microphone is working! Speaking into the microphone should show visual feedback.";
+                testResult.style.backgroundColor = "#dff0d8";
+
+                // Enable recording capability
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    audioPlayback.src = URL.createObjectURL(audioBlob);
+                    recordingSection.style.display = 'block';
+                };
+
+                drawVisualizer();
+            } catch (error) {
+                testResult.textContent = "Error accessing microphone: " + error.message;
+                testResult.style.backgroundColor = "#f2dede";
+                console.error('Error:', error);
+            }
+        }
+
+        // Stop microphone test
+        function stopMicrophoneTest() {
+            if (audioContext) {
+                audioContext.close();
+            }
+            if (microphone) {
+                microphone.disconnect();
+            }
+            isTestRunning = false;
+            startTestButton.disabled = false;
+            stopTestButton.disabled = true;
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = true;
+            testResult.textContent = "Microphone test stopped.";
+            testResult.style.backgroundColor = "#f8f9fa";
+        }
+
+        // Start recording
+        function startRecording() {
+            audioChunks = [];
+            mediaRecorder.start();
+            isRecording = true;
+            startRecordingButton.disabled = true;
+            stopRecordingButton.disabled = false;
+            testResult.textContent = "Recording in progress...";
+        }
+
+        // Stop recording
+        function stopRecording() {
+            mediaRecorder.stop();
+            isRecording = false;
+            startRecordingButton.disabled = false;
+            stopRecordingButton.disabled = true;
+            testResult.textContent = "Recording stopped. Check the playback below.";
+        }
+
+        // Draw visualizer
+        function drawVisualizer() {
+            if (!isTestRunning) return;
+
+            requestAnimationFrame(drawVisualizer);
+
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteTimeDomainData(dataArray);
+
+            // Calculate volume
+            let sum = 0;
+            for (let i = 0; i < bufferLength; i++) {
+                sum += Math.abs(dataArray[i] - 128);
+            }
+            const average = sum / bufferLength;
+            const volume = (average / 128) * 100;
+            volumeBar.style.height = `${volume}%`;
+
+            // Draw waveform
+            canvasCtx.fillStyle = '#f5f5f5';
+            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+            canvasCtx.lineWidth = 2;
+            canvasCtx.strokeStyle = '#4CAF50';
+            canvasCtx.beginPath();
+
+            const sliceWidth = canvas.width / bufferLength;
+            let x = 0;
+
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = v * canvas.height / 2;
+
+                if (i === 0) {
+                    canvasCtx.moveTo(x, y);
+                } else {
+                    canvasCtx.lineTo(x, y);
+                }
+
+                x += sliceWidth;
+            }
+
+            canvasCtx.lineTo(canvas.width, canvas.height / 2);
+            canvasCtx.stroke();
+        }
+
+        // Event listeners
+        startTestButton.addEventListener('click', startMicrophoneTest);
+        stopTestButton.addEventListener('click', stopMicrophoneTest);
+        startRecordingButton.addEventListener('click', startRecording);
+        stopRecordingButton.addEventListener('click', stopRecording);
+
+        // Original permissions code
+        const permissionsList = document.getElementById('permissions-list');
+
+        function getStatusBadge(status) {
+            return `<span class="status ${status}">${status}</span>`;
+        }
+
+        async function checkPermission(permission) {
+            try {
+                if (!navigator.permissions) {
+                    throw new Error('Permissions API not supported');
+                }
+                const result = await navigator.permissions.query({ name: permission.name });
+                return result.state;
+            } catch (error) {
+                return 'unsupported';
+            }
+        }
+
+        async function requestPermission(permission) {
+            try {
+                switch (permission) {
+                    case 'geolocation':
+                        await navigator.geolocation.getCurrentPosition(() => {});
+                        break;
+                    case 'notifications':
+                        await Notification.requestPermission();
+                        break;
+                    case 'camera':
+                        await navigator.mediaDevices.getUserMedia({ video: true });
+                        break;
+                    case 'microphone':
+                        await navigator.mediaDevices.getUserMedia({ audio: true });
+                        break;
+                }
+                updatePermissionStatus(permission);
+            } catch (error) {
+                console.error(`Error requesting ${permission}:`, error);
+            }
+        }
+
+        async function updatePermissionStatus(permissionName) {
+            const permissionElement = document.getElementById(`permission-${permissionName}`);
+            const statusElement = permissionElement.querySelector('.status');
+            const permission = permissionsToCheck.find(p => p.name === permissionName);
+            const status = await checkPermission(permission);
+            statusElement.className = `status ${status}`;
+            statusElement.textContent = status;
+        }
+
+        async function createPermissionsList() {
+            for (const permission of permissionsToCheck) {
+                const status = await checkPermission(permission);
+                const permissionItem = document.createElement('div');
+                permissionItem.className = 'permission-item';
+                permissionItem.id = `permission-${permission.name}`;
+                
+                let html = `
+                    <strong>${permission.description}</strong>
+                    (${permission.name})
+                    ${getStatusBadge(status)}
+                `;
+
+                if (status !== 'unsupported' && ['geolocation', 'notifications', 'camera', 'microphone'].includes(permission.name)) {
+                    html += `<button onclick="requestPermission('${permission.name}')">Request Permission</button>`;
+                }
+
+                permissionItem.innerHTML = html;
+                permissionsList.appendChild(permissionItem);
+            }
+        }
+
+        createPermissionsList();
+    </script>
+</body>
+</html>
